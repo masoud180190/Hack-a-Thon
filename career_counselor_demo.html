@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HackGenAI Career Counselor - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .card.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #333;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+            width: 0%;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .job-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .job-card h3 {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .job-card .score {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .variable-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .variable-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .variable-name {
+            color: #555;
+        }
+
+        .variable-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .action-plan {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .action-plan li {
+            counter-increment: step-counter;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .action-plan li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .video-list {
+            list-style: none;
+        }
+
+        .video-list li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+
+        .video-list li:hover {
+            background: #e9ecef;
+        }
+
+        .video-list a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .video-list a:hover {
+            text-decoration: underline;
+        }
+
+        .feedback-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+        }
+
+        .step-question {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-yes {
+            background: #28a745;
+        }
+
+        .btn-no {
+            background: #dc3545;
+        }
+
+        .career-overview {
+            padding: 20px;
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .youtube-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #ffe7e7;
+            border-left: 4px solid #ff4444;
+            border-radius: 5px;
+        }
+
+        .youtube-video-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: white;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .youtube-video-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .youtube-video-item a {
+            color: #ff0000;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .youtube-video-item a:before {
+            content: "▶";
+            color: #ff0000;
+            font-size: 1.2em;
+        }
+
+        .youtube-video-item a:hover {
+            color: #cc0000;
+        }
+
+        .keyword-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HackGenAI Career Counselor</h1>
+            <p>AI-Powered Entertainment Career Guidance System</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <!-- Question 1 -->
+        <div class="card active question-card" id="q1">
+            <h2>Question 1 of 4</h2>
+            <div class="question-text">
+                Imagine you could host a documentary series about anything in the world, living or dead. What is the topic, what is your opening scene, and what feeling do you want to leave the audience with?
+            </div>
+            <textarea id="answer1" placeholder="Share your creative vision..."></textarea>
+            <button class="btn" onclick="nextQuestion(1)">Continue</button>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="card question-card" id="q2">
+            <h2>Question 2 of 4</h2>
+            <div class="question-text">
+                Describe a recent situation where something broke—maybe a piece of technology, a friendship, or a plan. Did you step up to fix it, and what method did you use first: logic, emotion, or tools?
+            </div>
+            <textarea id="answer2" placeholder="Describe the situation and your approach..."></textarea>
+            <button class="btn" onclick="nextQuestion(2)">Continue</button>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="card question-card" id="q3">
+            <h2>Question 3 of 4</h2>
+            <div class="question-text">
+                If money, sleep, and time didn't matter, what is the one project you would work on non-stop for the next three months, and who would be on your ideal (small) team?
+            </div>
+            <textarea id="answer3" placeholder="Describe your dream project..."></textarea>
+            <button class="btn" onclick="nextQuestion(3)">Continue</button>
+        </div>
+
+        <!-- Question 4 -->
+        <div class="card question-card" id="q4">
+            <h2>Question 4 of 4</h2>
+            <div class="question-text">
+                It's a Friday night, and you have no social obligations. Do you spend your time building something, consuming content (reading/watching), or researching how the world works?
+            </div>
+            <textarea id="answer4" placeholder="What would you choose?"></textarea>
+            <button class="btn" onclick="analyzeAnswers()">Analyze My Profile</button>
+        </div>
+
+        <!-- Analysis Results -->
+        <div class="card" id="analysis">
+            <h2>Your Personality Profile Analysis</h2>
+            <p style="margin-bottom: 20px; color: #666;">Based on your answers, we've analyzed 30 different variables across interests, skills, personality traits, values, and environment preferences.</p>
+
+            <h3 style="color: #667eea; margin-top: 20px;">Key Attributes Detected:</h3>
+            <div class="variable-scores">
+                <div class="variable-item">
+                    <span class="variable-name">Digital Art 3D</span>
+                    <span class="variable-value">+2</span>
+                </div>
+                <div class="variable-item">
+                    <span class="variable-name">Fictional Narrative</span>
+                    <span class="variable-value">+1</span>
+                </div>
+                <div class="variable-item">
+                    <span class="variable-name">Programming Logic</span>
+                    <span class="variable-value">+1</span>
+                </div>
+                <div class="variable-item">
+                    <span class="variable-name">Project Management</span>
+                    <span class="variable-value">+1</span>
+                </div>
+                <div class="variable-item">
+                    <span class="variable-name">Creative Drive</span>
+                    <span class="variable-value">+1</span>
+                </div>
+                <div class="variable-item">
+                    <span class="variable-name">Self-Direction</span>
+                    <span class="variable-value">+1</span>
+                </div>
+            </div>
+
+            <button class="btn" onclick="showResults()" style="margin-top: 30px;">See Career Recommendations</button>
+        </div>
+
+        <!-- Career Recommendations -->
+        <div class="card" id="results">
+            <h2>Top 10 Career Recommendations</h2>
+            <p style="margin-bottom: 20px; color: #666;">Based on your profile, here are the entertainment careers that best match your interests and strengths:</p>
+
+            <div class="results-grid">
+                <div class="job-card" onclick="selectCareer('Animation Director')">
+                    <h3>Animation Director</h3>
+                    <div class="score">9.10</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Film Director')">
+                    <h3>Film Director</h3>
+                    <div class="score">8.45</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Production Designer')">
+                    <h3>Production Designer</h3>
+                    <div class="score">8.35</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Music Video Director')">
+                    <h3>Music Video Director</h3>
+                    <div class="score">8.20</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Set Designer')">
+                    <h3>Set Designer</h3>
+                    <div class="score">8.10</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Game Producer')">
+                    <h3>Game Producer</h3>
+                    <div class="score">8.08</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Game Designer')">
+                    <h3>Game Designer</h3>
+                    <div class="score">8.00</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Theater Director')">
+                    <h3>Theater Director</h3>
+                    <div class="score">7.95</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Streaming Platform Manager')">
+                    <h3>Streaming Platform Manager</h3>
+                    <div class="score">7.75</div>
+                </div>
+                <div class="job-card" onclick="selectCareer('Film Producer')">
+                    <h3>Film Producer</h3>
+                    <div class="score">7.68</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Career Details -->
+        <div class="card" id="careerDetails">
+            <h2>Career Path: <span id="selectedCareer">Animation Director</span></h2>
+
+            <div class="career-overview">
+                <h3 style="color: #2196F3; margin-bottom: 15px;">Overview</h3>
+                Animation directors lead the creative vision for animated films, series, games, or sequences, overseeing the artistic style, character performances, and visual storytelling that brings animated worlds to life. Unlike live-action directors working with actors and cameras, animation directors guide teams of artists creating every frame from scratch. They translate scripts into visual narratives, direct voice actor performances, work with animators on character acting and movement, collaborate with art directors on visual style, and ensure consistent quality across productions requiring months or years to complete.
+            </div>
+
+            <button class="btn" onclick="showYouTubeVideos()" style="margin-top: 20px;">Find Learning Resources</button>
+        </div>
+
+        <!-- YouTube Videos Section -->
+        <div class="card" id="youtubeVideos">
+            <h2>Learning Resources from YouTube</h2>
+            <p style="margin-bottom: 15px; color: #666;">AI-powered keyword extraction and video search based on your career choice</p>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #667eea; margin-bottom: 10px; font-size: 1.1em;">Extracted Keywords:</h3>
+                <div>
+                    <span class="keyword-badge">animation</span>
+                    <span class="keyword-badge">director</span>
+                    <span class="keyword-badge">storytelling</span>
+                    <span class="keyword-badge">visual style</span>
+                    <span class="keyword-badge">character performance</span>
+                    <span class="keyword-badge">artistic vision</span>
+                    <span class="keyword-badge">3D animation</span>
+                    <span class="keyword-badge">storyboard</span>
+                    <span class="keyword-badge">production pipeline</span>
+                    <span class="keyword-badge">creative leadership</span>
+                </div>
+            </div>
+
+            <div class="youtube-section">
+                <h3 style="color: #ff4444; margin-bottom: 15px;">Top 10 YouTube Videos</h3>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=uDqjIdI4bF4" target="_blank">What Does an Animation Director Do? | Career Insights</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=haa7n3UGyDc" target="_blank">The 12 Principles of Animation (Official Full Series)</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=EvT5XS7j-Dc" target="_blank">How to Direct Animation - Pixar Animation Studios</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=T8dvMDFOFnA" target="_blank">Visual Storytelling Techniques for Animation Directors</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=NGH00xfhN7g" target="_blank">Character Performance and Acting in Animation</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=YQryHo0nlQ8" target="_blank">Storyboarding for Animation - Complete Guide</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=w7exDGMhYgQ" target="_blank">Behind the Scenes: Animation Director's Workflow</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=yPkk85A69Nk" target="_blank">3D Animation Pipeline Explained for Beginners</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=SLnAFZWVZLY" target="_blank">Creative Leadership in Animation Production</a>
+                </div>
+                <div class="youtube-video-item">
+                    <a href="https://www.youtube.com/watch?v=ARrdkNUHGvE" target="_blank">How to Build Your Animation Portfolio - Industry Tips</a>
+                </div>
+            </div>
+
+            <button class="btn" onclick="showActionPlan()" style="margin-top: 20px;">Continue to Action Plan</button>
+        </div>
+
+        <!-- Action Plan -->
+        <div class="card" id="actionPlan">
+            <h2>Your Personalized 6-Month Action Plan</h2>
+            <p style="margin-bottom: 25px; color: #666;">A customized roadmap to kickstart your career as an Animation Director</p>
+
+            <ol class="action-plan">
+                <li>
+                    <strong>Learn the fundamentals of animation:</strong> Start by studying the principles of animation, including timing, spacing, and weight. Watch animated films, series, and games to analyze the techniques used by professional directors.
+                </li>
+                <li>
+                    <strong>Develop your storytelling skills:</strong> Animation directors must be excellent storytellers. Practice writing scripts and developing storyboards for your own animated projects.
+                </li>
+                <li>
+                    <strong>Gain experience in animation production:</strong> Look for internships or entry-level positions at animation studios or production companies. Gain hands-on experience in the production process, including character design, animation, and editing.
+                </li>
+                <li>
+                    <strong>Build your network:</strong> Connect with other animation professionals, such as directors, animators, and producers. Attend industry events and join online communities to learn about job opportunities and industry trends.
+                </li>
+                <li>
+                    <strong>Create your portfolio:</strong> Develop a portfolio of your best work, including animated films, series, or games. Include your storyboards, character designs, and animation sequences.
+                </li>
+            </ol>
+
+            <div class="feedback-section">
+                <h3 style="margin-bottom: 15px;">Interactive Feedback</h3>
+                <p style="margin-bottom: 15px;">In the actual system, you can review each step and request changes if you'd like to focus on different areas. The AI will regenerate steps based on your feedback!</p>
+                <div class="step-question">Do you like Step 1?</div>
+                <div class="btn-group">
+                    <button class="btn btn-yes">Yes, continue</button>
+                    <button class="btn btn-no">No, change it</button>
+                </div>
+            </div>
+
+            <button class="btn" onclick="location.reload()" style="margin-top: 30px;">Start Over</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 7;
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function nextQuestion(questionNum) {
+            document.getElementById('q' + questionNum).classList.remove('active');
+            document.getElementById('q' + (questionNum + 1)).classList.add('active');
+            currentStep++;
+            updateProgress();
+        }
+
+        function analyzeAnswers() {
+            document.getElementById('q4').classList.remove('active');
+            document.getElementById('analysis').classList.add('active');
+            currentStep++;
+            updateProgress();
+        }
+
+        function showResults() {
+            document.getElementById('analysis').classList.remove('active');
+            document.getElementById('results').classList.add('active');
+            currentStep++;
+            updateProgress();
+        }
+
+        function selectCareer(careerName) {
+            document.getElementById('selectedCareer').textContent = careerName;
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('careerDetails').classList.add('active');
+            currentStep++;
+            updateProgress();
+        }
+
+        function showYouTubeVideos() {
+            document.getElementById('careerDetails').classList.remove('active');
+            document.getElementById('youtubeVideos').classList.add('active');
+            currentStep++;
+            updateProgress();
+        }
+
+        function showActionPlan() {
+            document.getElementById('youtubeVideos').classList.remove('active');
+            document.getElementById('actionPlan').classList.add('active');
+            currentStep = totalSteps;
+            updateProgress();
+        }
+
+        // Initialize progress bar
+        updateProgress();
+    </script>
+</body>
+</html>
