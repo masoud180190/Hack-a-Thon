@@ -1,8 +1,27 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hören 2: Mina und Ali · Deutsch A1.1</title><style>*{box-sizing:border-box}body{margin:0;background:#f0f7ff;color:#092d65;font-family:system-ui,Arial,sans-serif}main{max-width:580px;margin:6vh auto;padding:28px;background:white;border-radius:20px;border:2px solid #cae5ff;box-shadow:0 8px 28px #17447720}h1{font-size:clamp(26px,6vw,36px);line-height:1.15}header{font-weight:750;color:#1167b9}.hint{background:#fff0b6;padding:10px 14px;border-radius:10px;display:inline-block}p{line-height:1.6}button{margin:8px 8px 8px 0;border:0;border-radius:10px;background:#126cc5;color:white;font-size:17px;padding:13px 15px;cursor:pointer}#stop{background:#e1eefa;color:#153a64}#state{margin:14px 0;padding:19px;background:#eaf5ff;border-radius:14px;font-size:21px;font-weight:700}label{display:flex;align-items:center;gap:12px}input{flex:1}small{display:block;margin-top:20px;color:#526a80;line-height:1.5}</style></head><body><main><header>Deutsch A1.1 · Lektion 1</header><h1>Hören 2: Mina und Ali</h1><span class="hint">Höre. Wähle die richtige Antwort.</span><p>Höre den Dialog und beantworte die Fragen auf Seite 3.</p><button id="play">▶ Dialog abspielen</button><button id="stop">■ Stopp</button><div id="state" role="status">Bereit zum Hören</div><label>Tempo <input id="rate" type="range" min="0.65" max="1.1" step="0.05" value="0.8"><span id="speed">0,8×</span></label><small>Deutschsprachige Sprachausgabe über dein Gerät. Die Stimmen können je nach Gerät verschieden klingen. Zum Starten bitte auf „Dialog abspielen“ tippen.</small></main><script>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hören 2: Mina und Ali</title><style>body{font:18px system-ui,Arial,sans-serif;background:#eff7ff;color:#092d65;margin:0}main{max-width:540px;margin:6vh auto;padding:22px 27px;background:white;border:2px solid #b9daff;border-radius:22px}h1{font-size:1.7em}button{border:0;border-radius:12px;background:#1268bf;color:white;padding:14px;font-weight:700;font-size:1em;margin:6px 8px 6px 0}#stop{background:#e6ecf4;color:#123b67}#status{background:#e8f4ff;padding:15px;border-radius:12px;margin:18px 0;min-height:25px}.female{color:#9b1a5d}.male{color:#0757a9}small{display:block;color:#53657b;margin-top:20px;line-height:1.55}label{display:flex;gap:10px;align-items:center}input{flex:1}</style></head><body><main><strong>DEUTSCH A1.1 · LEKTION 1</strong><h1>Hören 2: Mina und Ali</h1><p>Höre den Dialog. Beantworte die Fragen auf Seite 3.</p><button id="play">▶ Dialog abspielen</button><button id="stop">■ Stopp</button><div id="status">Bereit zum Hören</div><label>Tempo <input type="range" min=".65" max="1.0" value=".85" step=".05" id="rate"><output id="value">0,85×</output></label><small>Die Seite verwendet die deutsche Sprachausgabe deines Geräts. Weibliche Rollen werden mit einer höheren Stimme und männliche Rollen mit einer tieferen Stimme gesprochen. Wenn dein Gerät verschiedene deutsche Stimmen anbietet, wählt die Seite unterschiedliche Stimmen für die Rollen.</small></main><script>
 const lines=[["Mina","Guten Tag! Ich heiße Mina. Ich bin Studentin."],["Ali","Hallo, Mina! Ich heiße Ali. Ich bin Student."],["Mina","Sara kommt."],["Ali","Ja, ich komme auch."],["Mina","Ali kommt auch. Er ist Student."]];
-let stopped=true,idx=0,pending=null;
-const synth=window.speechSynthesis,stat=document.querySelector('#state'),speed=document.querySelector('#rate');
-speed.oninput=()=>document.querySelector('#speed').textContent=speed.value.replace('.',',')+'×';
-function stop(){stopped=true;if(pending)clearTimeout(pending);if(synth)synth.cancel();stat.textContent='Bereit zum Hören';}
-function next(){if(stopped)return;if(idx===lines.length){stat.textContent='Fertig. Du kannst den Dialog erneut hören.';return;}const [name,text]=lines[idx++];const u=new SpeechSynthesisUtterance(text);u.lang='de-DE';u.rate=Number(speed.value);u.volume=1;const f=name==='Sara'||name==='Mina';u.pitch=f?1.18:0.83;const vs=synth.getVoices().filter(v=>v.lang.toLowerCase().startsWith('de'));let chosen=vs.find(v=>(f?/female|katja|anna|marlene|helena|vicki/i:/male|markus|stefan|conrad|hans|daniel/i).test(v.name));u.voice=chosen||(f?vs[0]:vs[1]||vs[0])||null;stat.textContent=name+' spricht …';u.onend=()=>{if(!stopped)pending=setTimeout(next,600);};u.onerror=()=>stat.textContent='Auf diesem Gerät ist keine passende Sprachausgabe verfügbar.';synth.speak(u);}
-document.querySelector('#play').onclick=()=>{if(!synth){stat.textContent='Dein Browser unterstützt keine Sprachausgabe.';return;}stop();stopped=false;idx=0;next();};document.querySelector('#stop').onclick=stop;window.addEventListener('beforeunload',stop);</script></body></html>
+const synth=window.speechSynthesis,status=document.getElementById('status'),speed=document.getElementById('rate');
+speed.oninput=()=>document.getElementById('value').textContent=speed.value.replace('.',',')+'×';
+let cancelled=true,index=0,pauseHandle=null;
+function stop(){cancelled=true;if(pauseHandle)clearTimeout(pauseHandle);if(synth)synth.cancel();status.textContent='Bereit zum Hören';}
+const femaleNames=/katja|anna|marlene|helena|vicki|petra|heda|female|weiblich|siri/i;
+const maleNames=/markus|stefan|conrad|hans|yannick|daniel|male|männlich/i;
+function pick(female){
+ const voices=synth.getVoices().filter(x=>x.lang&&x.lang.toLowerCase().startsWith('de'));
+ if(!voices.length)return null;
+ const femaleVoice=voices.find(v=>femaleNames.test(v.name));
+ const maleVoice=voices.find(v=>maleNames.test(v.name)&&!femaleNames.test(v.name));
+ return (female?femaleVoice:maleVoice)||voices[female?0:voices.length-1]||null;
+}
+function next(){if(cancelled)return;if(index>=lines.length){status.textContent='Fertig. Du kannst erneut hören.';return;}
+ const [name,phrase]=lines[index++],isFemale=name==='Sara'||name==='Mina';
+ const u=new SpeechSynthesisUtterance(phrase);u.lang='de-DE';u.voice=pick(isFemale);u.rate=Number(speed.value);u.pitch=isFemale?1.45:.68;u.volume=1;
+ status.textContent=(isFemale?'👩 ':'👨 ')+name+' spricht …';
+ u.onend=()=>{if(!cancelled)pauseHandle=setTimeout(next,550)};
+ u.onerror=()=>{status.textContent='Auf diesem Gerät ist keine deutsche Sprachausgabe verfügbar.';};
+ synth.speak(u);
+}
+document.getElementById('play').onclick=()=>{if(!synth){status.textContent='Dieser Browser unterstützt keine Sprachausgabe.';return;}stop();cancelled=false;index=0;next();};
+document.getElementById('stop').onclick=stop;
+window.addEventListener('beforeunload',stop);
+</script></body></html>
